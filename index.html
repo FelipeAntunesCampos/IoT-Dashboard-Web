@@ -63,9 +63,9 @@
           <h3>Hardware</h3>
           <ul>
             <li>ESP32 Dev Module</li>
-            <li>Sensor DHT11: temperatura e umidade (GPIO 14)</li>
+            <li>Sensor DHT11: temperatura e umidade (GPIO 6)</li>
             <li>Sensor MQ-135: qualidade do ar/gás (entrada analógica)</li>
-            <li>3 LEDs de alerta: temperatura (&gt; 28 °C), umidade (&gt; 56 %) e gás (&gt; 400)</li>
+            <li>3 LEDs de alerta: temperatura (&gt; 28 °C), umidade (&gt; 56 %) e gás (&gt; 200)</li>
           </ul>
         </div>
         <figure>
@@ -119,7 +119,7 @@
           <header class="card__cab"><h3>Qualidade do Ar</h3><span class="led" aria-hidden="true"></span></header>
           <p class="card__valor"><span id="v-qualidade_ar">--</span><small>ppm</small></p>
           <div class="barra" aria-hidden="true"><div class="barra__fill" id="b-qualidade_ar"></div><span class="barra__marca" id="m-qualidade_ar"></span></div>
-          <p class="card__limite">Alerta acima de 400 ppm</p>
+          <p class="card__limite">Alerta acima de 200 ppm</p>
           <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline id="s-qualidade_ar" points=""/></svg>
           <p class="card__estado" id="e-qualidade_ar">Aguardando dados</p>
         </article>

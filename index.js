@@ -16,7 +16,7 @@ const CONFIG = {
 const TOPICOS = {
   "aulas/professor/temperatura":  { id: "temperatura",  limite: 28,  casas: 1, max: 50 },
   "aulas/professor/umidade":      { id: "umidade",      limite: 56,  casas: 0, max: 100 },
-  "aulas/professor/qualidade_ar": { id: "qualidade_ar", limite: 400, casas: 0, max: 1000 },
+  "aulas/professor/qualidade_ar": { id: "qualidade_ar", limite: 200, casas: 0, max: 1000 },
 };
 
 /* ---------- Navegação por abas (SPA) ---------- */
