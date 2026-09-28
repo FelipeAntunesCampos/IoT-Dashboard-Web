@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estação de Monitoramento IoT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+  <!-- Paho MQTT via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+  <script src="index.js" defer></script>
+</head>
+<body>
+
+  <!-- ===== Cabeçalho: título, grupo e turma ===== -->
+  <header class="topo">
+    <div class="topo__id">
+      <h1>Estação de Monitoramento IoT</h1>
+      <p><strong>Grupo 2</strong> · Turma 2TSD2</p>
+    </div>
+
+    <!-- Senha do grupo fornecida pelo professor (salva no localStorage) -->
+    <form id="form-senha" class="senha" autocomplete="off">
+      <label for="senha">Senha do grupo</label>
+      <input type="password" id="senha" placeholder="Senha do professor">
+      <button type="submit">Salvar</button>
+      <span id="senha-msg" role="status"></span>
+    </form>
+  </header>
+
+  <!-- ===== Menu (SPA) ===== -->
+  <nav class="menu" aria-label="Navegação principal">
+    <button class="menu__aba ativa" data-aba="sobre" aria-current="page">Sobre o Projeto</button>
+    <button class="menu__aba" data-aba="dashboard">Dashboard Ao Vivo</button>
+  </nav>
+
+  <main>
+    <!-- ===== Aba 1: Sobre o Projeto ===== -->
+    <section id="aba-sobre" class="aba ativa" aria-labelledby="t-sobre">
+      <h2 id="t-sobre" hidden>Sobre o Projeto</h2>
+      <article class="hero">
+        <div>
+          <h2>Ar, calor e umidade, ao vivo na tela.</h2>
+          <p>Um ESP32 mede o ambiente, envia os dados por MQTT e esta página mostra tudo em tempo real. Passou do limite, o LED acende na placa e o cartão fica laranja aqui.</p>
+        </div>
+      </article>
+
+      <article class="bloco">
+        <div>
+          <h3>Objetivo</h3>
+          <p>Coletar temperatura, umidade e qualidade do ar com um ESP32 e mostrar os valores em tempo real numa página web, usando MQTT. Quando um valor passa do limite, um LED se acende no circuito e o cartão correspondente fica em alerta na tela.</p>
+        </div>
+        <figure>
+          <img src="imagens/projeto-montado.jpg" alt="Circuito montado na protoboard com ESP32, sensores e LEDs, ligado ao notebook">
+          <figcaption>Circuito completo montado na bancada.</figcaption>
+        </figure>
+      </article>
+
+      <article class="bloco">
+        <div>
+          <h3>Hardware</h3>
+          <ul>
+            <li>ESP32 Dev Module</li>
+            <li>Sensor DHT11: temperatura e umidade (GPIO 14)</li>
+            <li>Sensor MQ-135: qualidade do ar/gás (entrada analógica)</li>
+            <li>3 LEDs de alerta: temperatura (&gt; 28 °C), umidade (&gt; 56 %) e gás (&gt; 400)</li>
+          </ul>
+        </div>
+        <figure>
+          <img src="imagens/esp32.jpg" alt="Placa ESP32 na protoboard com os fios dos sensores">
+          <figcaption>Placa ESP32 com as ligações dos sensores.</figcaption>
+        </figure>
+      </article>
+
+      <article class="bloco">
+        <div>
+          <h3>Arquitetura</h3>
+          <p>O ESP32 lê os sensores a cada 3 segundos e publica nos tópicos <code>aulas/professor/temperatura</code>, <code>aulas/professor/umidade</code> e <code>aulas/professor/qualidade_ar</code> do broker Mosquitto (porta 1883). Esta página se conecta ao mesmo broker por WebSockets (porta 9001) com a biblioteca Paho MQTT e atualiza os cartões a cada mensagem.</p>
+          <p class="fluxo"><span>ESP32</span><i>→</i><span>Mosquitto</span><i>→</i><span>Página web</span></p>
+        </div>
+        <figure>
+          <img src="imagens/leds-alerta.jpg" alt="LEDs vermelho, amarelo e azul com resistores na protoboard">
+          <figcaption>LEDs de alerta de temperatura, umidade e gás.</figcaption>
+        </figure>
+      </article>
+    </section>
+
+    <!-- ===== Aba 2: Dashboard Ao Vivo ===== -->
+    <section id="aba-dashboard" class="aba" aria-labelledby="t-dash">
+      <div class="dash__topo">
+        <h2 id="t-dash">Dashboard Ao Vivo</h2>
+        <p class="status desconectado" id="status" role="status" aria-live="polite">
+          <span class="status__ponto"></span><span id="status-texto">Desconectado</span>
+        </p>
+      </div>
+
+      <div class="cards">
+        <article class="card" id="card-temperatura">
+          <header class="card__cab"><h3>Temperatura</h3><span class="led" aria-hidden="true"></span></header>
+          <p class="card__valor"><span id="v-temperatura">--</span><small>°C</small></p>
+          <div class="barra" aria-hidden="true"><div class="barra__fill" id="b-temperatura"></div><span class="barra__marca" id="m-temperatura"></span></div>
+          <p class="card__limite">Alerta acima de 28 °C</p>
+          <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline id="s-temperatura" points=""/></svg>
+          <p class="card__estado" id="e-temperatura">Aguardando dados</p>
+        </article>
+
+        <article class="card" id="card-umidade">
+          <header class="card__cab"><h3>Umidade</h3><span class="led" aria-hidden="true"></span></header>
+          <p class="card__valor"><span id="v-umidade">--</span><small>%</small></p>
+          <div class="barra" aria-hidden="true"><div class="barra__fill" id="b-umidade"></div><span class="barra__marca" id="m-umidade"></span></div>
+          <p class="card__limite">Alerta acima de 56 %</p>
+          <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline id="s-umidade" points=""/></svg>
+          <p class="card__estado" id="e-umidade">Aguardando dados</p>
+        </article>
+
+        <article class="card" id="card-qualidade_ar">
+          <header class="card__cab"><h3>Qualidade do Ar</h3><span class="led" aria-hidden="true"></span></header>
+          <p class="card__valor"><span id="v-qualidade_ar">--</span><small>ppm</small></p>
+          <div class="barra" aria-hidden="true"><div class="barra__fill" id="b-qualidade_ar"></div><span class="barra__marca" id="m-qualidade_ar"></span></div>
+          <p class="card__limite">Alerta acima de 400 ppm</p>
+          <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline id="s-qualidade_ar" points=""/></svg>
+          <p class="card__estado" id="e-qualidade_ar">Aguardando dados</p>
+        </article>
+      </div>
+
+      <p class="atualizacao">Última atualização: <span id="ultima">nenhuma ainda</span></p>
+
+      <!-- Banner inferior obrigatório -->
+      <aside class="banner">Projeto IOT SESI SENAI Valinhos Grupo 2</aside>
+    </section>
+  </main>
+
+  <!-- ===== Rodapé: integrantes ===== -->
+  <footer class="rodape">
+    <p><strong>Integrantes:</strong> Felipe Antunes Campos, Gustavo Alves, Matheus Leitão, Vinicius Bertunho e Ana Julia</p>
+  </footer>
+
+</body>
+</html>
